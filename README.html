@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto de Simulación de Energía Eléctrica</title>
+<style>
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+    margin: 40px;
+    line-height: 1.6;
+  }
+  h1, h2, h3 {
+    color: #0d6efd;
+  }
+  pre {
+    background: #ffffff;
+    color: #000000;
+    padding: 15px;
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 15px 0;
+  }
+  table, th, td {
+    border: 1px solid #999;
+  }
+  th, td {
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #0d6efd;
+    color: white;
+  }
+  code {
+    background: #e9ecef;
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<h1>💡 Proyecto: Simulación de Consumo de Energía Eléctrica</h1>
+
+<h2>📘 Descripción General</h2>
+<p>
+Este programa permite <b>registrar y analizar el consumo de energía eléctrica (en kWh)</b> durante 24 horas, así como 
+<b>simular ahorros</b> aplicando reducciones en horarios específicos. Además, muestra reportes detallados y comparativos 
+entre el consumo <b>base</b> y el <b>simulado</b>, calculando el <b>ahorro total en dinero y energía</b>.
+</p>
+
+<p>El proyecto está dividido en tres archivos:</p>
+<ul>
+  <li><code>main.c</code>: Controla el flujo principal del programa y el menú.</li>
+  <li><code>energia.c</code>: Contiene las funciones que procesan los datos.</li>
+  <li><code>energia.h</code>: Define las constantes y prototipos de funciones.</li>
+</ul>
+
+<hr>
+
+<h2>⚙️ Cómo compilar y ejecutar</h2>
+
+<h3>En Linux / macOS / Git Bash:</h3>
+<pre><code>gcc main.c energia.c -o energia
+./energia
+</code></pre>
+
+<h3>En Windows (cmd o PowerShell):</h3>
+<pre><code>gcc main.c energia.c -o energia.exe
+energia.exe
+</code></pre>
+
+<p>💡 Requiere tener instalado el compilador <b>GCC</b> (incluido en Code::Blocks, MinGW o Dev-C++).</p>
+
+<hr>
+
+<h2>🧩 Explicación completa del código</h2>
+
+<h3>🗂️ Archivo: <code>energia.h</code></h3>
+<pre><code>#ifndef ENERGIA_H
+#define ENERGIA_H
+
+#define HORAS 24
+
+void capturarConsumo(float consumo[]);
+float totalYpico(float consumo[], int *horaPico);
+void simularReduccion(float consumo[], float simulado[], float reduccionNoche, float reduccionTarde);
+void reporte(float consumo[], float precio);
+
+#endif
+</code></pre>
+
+<p>
+<b>Explicación:</b><br>
+Define constantes, prototipos de funciones y protecciones contra inclusión múltiple. 
+</p>
+
+<hr>
+
+<h3>🗂️ Archivo: <code>energia.c</code></h3>
+
+<h4>1️⃣ Función <code>capturarConsumo()</code></h4>
+<pre><code>void capturarConsumo(float consumo[]) {
+    int i;
+    for (i = 0; i < HORAS; i++) {
+        do {
+            printf("Ingrese el consumo (kWh) de la hora %02d: ", i);
+            scanf("%f", &consumo[i]);
+            if (consumo[i] &lt; 0)
+                printf("Error: el valor no puede ser negativo.\n");
+        } while (consumo[i] &lt; 0);
+    }
+}
+</code></pre>
+<p>
+Solicita los consumos horarios validando que no sean negativos mediante un ciclo <code>do-while</code>.
+</p>
+
+<h4>2️⃣ Función <code>totalYpico()</code></h4>
+<pre><code>float totalYpico(float consumo[], int *horaPico) {
+    float total = 0;
+    float max = consumo[0];
+    *horaPico = 0;
+    int i;
+    for (i = 0; i &lt; HORAS; i++) {
+        total += consumo[i];
+        if (consumo[i] &gt; max) {
+            max = consumo[i];
+            *horaPico = i;
+        }
+    }
+    return total;
+}
+</code></pre>
+<p>
+Calcula el total diario y la hora de mayor consumo mediante un puntero (<code>*horaPico</code>).
+</p>
+
+<h4>3️⃣ Función <code>simularReduccion()</code></h4>
+<pre><code>void simularReduccion(float consumo[], float simulado[], float reduccionNoche, float reduccionTarde) {
+    int i;
+    for (i = 0; i &lt; HORAS; i++) {
+        if (i &gt;= 0 &amp;&amp; i &lt;= 6)
+            simulado[i] = consumo[i] * (1 - reduccionNoche / 100);
+        else if (i &gt;= 18 &amp;&amp; i &lt;= 23)
+            simulado[i] = consumo[i] * (1 - reduccionTarde / 100);
+        else
+            simulado[i] = consumo[i];
+    }
+}
+</code></pre>
+<p>
+Aplica reducciones porcentuales en dos rangos horarios (nocturno y vespertino).
+</p>
+
+<h4>4️⃣ Función <code>reporte()</code></h4>
+<pre><code>void reporte(float consumo[], float precio) {
+    float total = 0;
+    printf("\nHora\tConsumo(kWh)\tCosto($)\n");
+    int i;
+    for (i = 0; i &lt; HORAS; i++) {
+        printf("%02d\t%.2f\t\t%.2f\n", i, consumo[i], consumo[i] * precio);
+        total += consumo[i] * precio;
+    }
+    printf("Costo total diario: $%.2f\n", total);
+}
+</code></pre>
+<p>
+Imprime una tabla con el consumo, costo por hora y el total diario.
+</p>
+
+<hr>
+
+<h3>🗂️ Archivo: <code>main.c</code></h3>
+
+<p>Controla el menú principal del programa:</p>
+
+<pre><code>printf("\n--- MENU ---\n");
+printf("1) Capturar consumo\n");
+printf("2) Reporte base\n");
+printf("3) Simular ahorro\n");
+printf("4) Comparativo base vs simulado\n");
+printf("5) Salir\n");
+</code></pre>
+
+<p>
+Usa un ciclo <code>do-while</code> y un <code>switch</code> para ejecutar opciones:
+</p>
+
+<ul>
+<li><b>Case 1:</b> Captura el consumo horario.</li>
+<li><b>Case 2:</b> Genera un reporte base y muestra la hora pico.</li>
+<li><b>Case 3:</b> Simula reducciones en horario nocturno y vespertino.</li>
+<li><b>Case 4:</b> Muestra comparativo base vs simulado con totales y ahorro.</li>
+<li><b>Case 5:</b> Sale del programa.</li>
+</ul>
+
+<hr>
+
+<h2>🧪 Casos de prueba</h2>
+
+<table>
+  <tr><th>Caso</th><th>Entrada esperada</th><th>Resultado esperado</th></tr>
+  <tr><td>1</td><td>Precio: 1.5; consumos de 1 kWh cada hora</td><td>Total diario = 24 × 1.5 = $36.00</td></tr>
+  <tr><td>2</td><td>Reducción noche 20%, tarde 10%</td><td>Simulado muestra menor consumo</td></tr>
+  <tr><td>3</td><td>Comparativo</td><td>Muestra ahorro total y diferencias</td></tr>
+  <tr><td>4</td><td>Ingreso negativo</td><td>Muestra error y repite entrada</td></tr>
+</table>
+
+<hr>
+
+<h2>👥 División de tareas</h2>
+
+<table>
+  <tr><th>Integrante</th><th>Tarea</th></tr>
+  <tr><td>A</td><td>Diseño del menú principal (<code>main.c</code>)</td></tr>
+  <tr><td>B</td><td>Desarrollo de funciones (<code>energia.c</code>)</td></tr>
+  <tr><td>C</td><td>Creación del encabezado (<code>energia.h</code>)</td></tr>
+  <tr><td>D</td><td>Pruebas, depuración y documentación (<code>README.html</code>)</td></tr>
+</table>
+
+<hr>
+
+<footer>
+  <p><b>Autor:</b> Equipo de desarrollo de simulación energética<br>
+  <b>Lenguaje:</b> C<br>
+  <b>Última actualización:</b> 2025</p>
+</footer>
+
+</body>
+</html>
